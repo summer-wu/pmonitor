@@ -24,6 +24,8 @@ class PMonitorFrame(tk.Frame):
     self.nb.add(label,text='tab1')
 
 
+
+
 if __name__ == '__main__':
   root = tk.Tk()
   frame = PMonitorFrame(root)

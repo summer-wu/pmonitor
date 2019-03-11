@@ -1,0 +1,13 @@
+{
+  "comment":"这个文件用于控制GUI的布局",
+  "jobs":[
+    {
+      "jobid":"ping",
+      "cmd":"ping g.cn"
+    },
+    {
+      "jobid":"ls",
+      "cmd":"ls -l "
+    }
+  ]
+}

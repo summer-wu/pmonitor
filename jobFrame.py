@@ -6,16 +6,18 @@ cmd
 import tkinter as tk
 import tkinter.ttk as ttk
 from logFrame import LogFrame
-from runnerModel import RunnerModel
+from jobModel import JobModel
 from constants import *
 import os
 
-class RunnerFrame(tk.Frame):
-  def __init__(self,master=None, cnf={}, **kw):
+class JobFrame(tk.Frame):
+  def __init__(self,master=None,model=None,cnf={}, **kw):
     """一个runnerFrame必须关联一个Model"""
     tk.Frame.__init__(self,master,cnf,**kw)
+    assert model is not None
+    self.model:JobModel =model
     self.addWidgets()
-    self.model:RunnerModel = None
+    self.refreshDetail()
 
   def addWidgets(self):
     """detailLabel显示详情
@@ -90,6 +92,6 @@ class RunnerFrame(tk.Frame):
 
 if __name__ == '__main__':
   root = tk.Tk()
-  frame = RunnerFrame(root)
+  frame = JobFrame(root)
   frame.pack(expand=True,fill=tk.BOTH)
   tk.mainloop()

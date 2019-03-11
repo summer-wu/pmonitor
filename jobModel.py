@@ -2,7 +2,20 @@
 from subprocess import Popen,getstatusoutput
 from collections import OrderedDict
 import json
-class RunnerModel:
+class JobModel:
+
+  @classmethod
+  def jobsFromJson(cls):
+    """读取jobs.json，返回model数组"""
+    with open('jobs.json') as f:
+      d = json.load(f)
+    jobs_json = d['jobs']
+    jobs = []
+    for jobDict in jobs_json:
+      m = cls.fromDict(jobDict)
+      jobs.append(m)
+    return jobs
+
   def __init__(self):
     self.jobid = None #用于标记tab
     self.cmd = None
@@ -10,6 +23,16 @@ class RunnerModel:
     self.startAt = None #启动时间，str
     self.logpath = None #日志文件，str
     self.returncode = None
+
+  @classmethod
+  def fromDict(cls,d):
+    inst = cls()
+    inst.cmd = d['cmd']
+    inst.jobid = d['jobid']
+    if 'status'  in d:inst.status = d['status']
+    if 'logpath' in d:inst.logpath = d['logpath']
+    if 'returncode' in d:inst.returncode = d['returncode']
+    return inst
 
   def dictRepr(self) ->dict:
     d = OrderedDict()
@@ -27,23 +50,15 @@ class RunnerModel:
     return s
 
   def __str__(self):
-    clsname = str(type(str))
+    clsname = str(type(self))
     jsonstr = self.jsonRepr()
-    s = f"<{clsname}>\n{jsonstr}"
+    s = f"{clsname}\n{jsonstr}"
     return s
 
   __repr__ = __str__
 
 
-  @classmethod
-  def fromDict(cls,d):
-    inst = cls()
-    inst.cmd = d['cmd']
-    inst.tabid = d['jobid']
-    if 'status'  in d:inst.status = d['status']
-    if 'logpath' in d:inst.logpath = d['logpath']
-    if 'returncode' in d:inst.returncode = d['returncode']
-    return inst
+
 
   def run(self):
     process = Popen('ls -l',shell=True)
@@ -57,7 +72,7 @@ class RunnerModel:
 
 
 if __name__ == '__main__':
-  m = RunnerModel()
-  print(m)
+  jobs = JobModel.jobsFromJson()
+  print(jobs)
   # a=getstatusoutput('ls -l')
   # print(a)

@@ -1,7 +1,0 @@
-{
-  "comment":"这个文件用于控制GUI的布局",
-  "runners":[
-    {"cmd":"ping g.cn",
-    "jobid":"ping"}
-  ]
-}
