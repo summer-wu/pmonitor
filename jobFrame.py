@@ -9,15 +9,21 @@ from logFrame import LogFrame
 from jobModel import JobModel
 from constants import *
 import os
+from bus import EventBus
+
+
 
 class JobFrame(tk.Frame):
   def __init__(self,master=None,model=None,cnf={}, **kw):
     """一个runnerFrame必须关联一个Model"""
-    tk.Frame.__init__(self,master,cnf,**kw)
+    tk.Frame.__init__(self,master=master,cnf=cnf,**kw)
     assert model is not None
     self.model:JobModel =model
     self.addWidgets()
-    self.refreshDetail()
+    self.refreshGUI()
+
+    bus = EventBus.defaultBus()
+    bus.add_event(func=self.refreshGUI,event=g_statusChangedEvent)
 
   def addWidgets(self):
     """detailLabel显示详情
@@ -30,12 +36,12 @@ class JobFrame(tk.Frame):
 ### row0 start
   def addRow0(self):
     """status start/stop按钮"""
-    master = tk.Frame(self)
+    master = ttk.Frame(self)
     master.pack(side=tk.TOP,fill=tk.X)
-    self.statusLabel = tk.Label(master, text='status:')
+    self.statusLabel = ttk.Label(master, text='status:')
     self.actionBtn = ttk.Button(master, text='start',command = self.actionBtnCommand)
-    self.statusLabel.pack(side=tk.LEFT)
-    self.actionBtn.pack(side=tk.LEFT)
+    self.statusLabel.pack(side=tk.LEFT,padx=10)
+    self.actionBtn.pack(side=tk.LEFT,padx=10)
 
     self.monitorLogVar = tk.IntVar(value=0)
     self.monitorLogCB = ttk.Checkbutton(master,text='monitor log',
@@ -52,6 +58,7 @@ class JobFrame(tk.Frame):
 
   def refreshLog(self):
     logpath = self.model.logpath
+    assert isinstance(logpath,str),f"logpath应该是str，实际是{logpath}"
     assert os.path.exists(logpath),f'log文件不存在{logpath}'
     with open(logpath) as f:
       text = f.read()
@@ -71,11 +78,13 @@ class JobFrame(tk.Frame):
   def actionBtnCommand(self):
     text = self.actionBtn['text']
     if text == 'start':
-      self.model.do_start()
+      actionResult = self.model.do_start()
+      print(f'start result:{actionResult}')
     elif text == 'kill' :
       self.model.do_kill()
     else:
       raise NotImplemented
+    self.refreshGUI()
 ### row0 end
 
   def addDetailLabel(self):
@@ -84,8 +93,9 @@ class JobFrame(tk.Frame):
     self.detailLabel = tk.Label(master, text='detail\n123',justify=tk.LEFT)
     self.detailLabel.pack(side=tk.LEFT)
 
-  def refreshDetail(self):
+  def refreshGUI(self):
     """detail就是把model的内容显示出来"""
+    self.setStatus(self.model.status)
     jsonstr = self.model.jsonRepr()
     self.detailLabel['text'] = jsonstr
 

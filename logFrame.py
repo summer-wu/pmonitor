@@ -4,7 +4,7 @@ import tkinter.ttk as ttk
 import tkinter.font as tkfont
 
 c_FontSize=12
-c_FontFamily='Monospace'
+c_FontFamily='Menlo'
 
 class LogFrame(tk.LabelFrame):
   def __init__(self, master=None, cnf={}, **kw):

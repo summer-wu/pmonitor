@@ -142,8 +142,8 @@ class Launcher:
 
     f = open(logpath,'at')
     pobj = Popen(cmd,shell=True,stdout=f,stderr=f,bufsize=0)
-    pobj.startAt = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    pobj.logpath = logpath
+    pobj.startAt = payload['startAt'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    pobj.logpath = payload['logpath'] = logpath
     pobj.poll()
     if pobj.returncode is None:
       payload['result'] = JobStartResultSucc
@@ -177,7 +177,6 @@ class Launcher:
       return payload
 
     pobj = self.id2popen[jobid]
-    payload['startAt'] = pobj.startAt
 
     try:
       pobj.terminate()

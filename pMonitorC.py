@@ -1,4 +1,11 @@
-"""它是Monitor的Client"""
+"""它是Monitor的Client
+
+使用方法：
+c.handlePayload=aNewFunc
+c.sendPayload(payload)
+c.handle_recv()
+
+"""
 import socket
 import threading
 import json
@@ -10,6 +17,7 @@ class PMonitorC:
     self.data = bytearray()
     self.s:socket = None
     self.shouldBreak = False
+    self.connect_to_uds(inThread=False)
 
   @staticmethod
   def daemonisRunning():
@@ -33,7 +41,7 @@ class PMonitorC:
       assert not isMain
 
     self.s = s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    s.settimeout(0.2) #最多等待0.2秒
+    s.settimeout(0.5) #最多等待0.2秒
 
     errno = s.connect_ex(server_address)
     if errno == 0:
@@ -62,6 +70,7 @@ class PMonitorC:
         # print("received:", data)
         self.data.extend(data)
         self.parseData()
+        self.shouldBreak = True #只需要parseData一次
     finally:
       s.close()
       print("connection closed",s)
@@ -82,7 +91,6 @@ class PMonitorC:
 
   def handlePayload(self, payload:dict):
     """必须覆盖，可以通过 c.handlePayload=aFunc 覆盖"""
-    action = payload['action']
     raise NotImplemented('must override')
 
 
@@ -93,6 +101,7 @@ class PMonitorC:
     length = length.to_bytes(4, byteorder='big')
     data = length + payload
     self.s.sendall(data)
+
 
 if __name__ == '__main__':
   c = PMonitorC()
