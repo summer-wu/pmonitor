@@ -11,6 +11,7 @@ import threading
 import json
 import errno as errnoM
 from constants import *
+import logging
 
 class PMonitorC:
   def __init__(self):
@@ -45,11 +46,11 @@ class PMonitorC:
 
     errno = s.connect_ex(server_address)
     if errno == 0:
-      print("connect_ex success")
+      logging.debug("connect_ex success")
       return (None,None)
     else:
       errmsg = errnoM.errorcode[errno]
-      print("connect_ex fail,errno={},errmsg={}".format(errno, errmsg))
+      logging.debug("connect_ex fail,errno={},errmsg={}".format(errno, errmsg))
       return errno,errmsg
 
   @staticmethod
@@ -73,7 +74,7 @@ class PMonitorC:
         self.shouldBreak = True #只需要parseData一次
     finally:
       s.close()
-      print("connection closed",s)
+      logging.debug("connection closed",s)
 
 
   def parseData(self):
@@ -85,7 +86,7 @@ class PMonitorC:
         return
       jsonBytes,remaining = self.takeDataWithByteCount(remaining,length)
       payload = json.loads(jsonBytes)
-      print("解析到payload:",payload)
+      # print("解析到payload:",payload)
       self.handlePayload(payload)
       self.data = remaining
 

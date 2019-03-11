@@ -58,7 +58,7 @@ class JobFrame(tk.Frame):
 
   def refreshLog(self):
     logpath = self.model.logpath
-    assert isinstance(logpath,str),f"logpath应该是str，实际是{logpath}"
+    if not isinstance(logpath,str):f"logpath应该是str，实际是{logpath}"
     assert os.path.exists(logpath),f'log文件不存在{logpath}'
     with open(logpath) as f:
       text = f.read()
@@ -78,8 +78,7 @@ class JobFrame(tk.Frame):
   def actionBtnCommand(self):
     text = self.actionBtn['text']
     if text == 'start':
-      actionResult = self.model.do_start()
-      print(f'start result:{actionResult}')
+      self.model.do_start()
     elif text == 'kill' :
       self.model.do_kill()
     else:
@@ -98,6 +97,10 @@ class JobFrame(tk.Frame):
     self.setStatus(self.model.status)
     jsonstr = self.model.jsonRepr()
     self.detailLabel['text'] = jsonstr
+    if not self.model.logpath:
+      self.monitorLogCB['state'] = tk.DISABLED
+    else:
+      self.monitorLogCB['state'] = tk.NORMAL
 
 
 if __name__ == '__main__':

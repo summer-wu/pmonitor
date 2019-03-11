@@ -6,6 +6,7 @@ import time
 from pMonitorC import PMonitorC
 from jobModel import JobModel
 from constants import g_statusChangedEvent
+import logging
 
 class StatusPoller:
   def __init__(self,jobid2model,interval=1):
@@ -44,7 +45,10 @@ class StatusPoller:
       model.replaceWithDict(jobDict)
       newstatus = model.status
       if oldstatus != newstatus:
+        logging.debug(f'jobid={jobid} status changed')
         EventBus.defaultBus().emit(g_statusChangedEvent)
+      else:
+        logging.debug(f'jobid={jobid} status not changed')
 
   def poll_once(self):
     c=PMonitorC()

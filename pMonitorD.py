@@ -84,7 +84,7 @@ class ServerHandler:
   def handlePayload(self, payload:dict):
     action = payload['action']
     if hasattr(self.server.launcher,f'do_{action}'):
-      getattr(self.server.launcher,f'do_{action}')(payload)
+      payload = getattr(self.server.launcher,f'do_{action}')(payload)
     else:
       payload['status'] = 'not implemented'
 
@@ -144,12 +144,10 @@ class Launcher:
     pobj = Popen(cmd,shell=True,stdout=f,stderr=f,bufsize=0)
     pobj.startAt = payload['startAt'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     pobj.logpath = payload['logpath'] = logpath
-    pobj.poll()
-    if pobj.returncode is None:
-      payload['result'] = JobStartResultSucc
-    else:
-      payload['result'] = JobStartResultFail
+    payload['status'] = JobStatusRunning
+    payload['pid'] = pobj.pid
     self.id2popen[jobid] = pobj
+    return payload
 
   def do_jobs(self, payload):
     jobs = []
@@ -202,7 +200,20 @@ class Launcher:
     for jobid,pobj in self.id2popen.items():
       pobj.poll()
 
+def daemonisRunning():
+  """通过连接socket，判断daemon是否在运行"""
+  s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+  errno = s.connect_ex(g_sockpath)
+  s.close()
+  if errno == 0:
+    return True
+  else:
+    return False
+
 if __name__ == '__main__':
+  if daemonisRunning():
+    print('already running')
+    exit(-1)
   launcher = Launcher()
   a=UDS(launcher)
   a.start_server()

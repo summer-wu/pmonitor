@@ -2,8 +2,24 @@
   "comment":"这个文件用于控制GUI的布局",
   "jobs":[
     {
-      "jobid":"ping",
-      "cmd":"ping g.cn"
+      "jobid":"ssh ub0",
+      "cmd":"./cmds/sshForwarding.sh ub0"
+    },
+    {
+      "jobid":"ssh hk0",
+      "cmd":"./cmds/sshForwarding.sh hk0"
+    },
+    {
+      "jobid":"startSSLocal",
+      "cmd":"./cmds/startSSLocal.sh"
+    },
+    {
+      "jobid":"pingSogou",
+      "cmd":"ping sogou.com"
+    },
+    {
+      "jobid":"pingUb0",
+      "cmd":"ping ub0"
     },
     {
       "jobid":"ls",

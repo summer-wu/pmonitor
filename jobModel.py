@@ -3,6 +3,7 @@ from subprocess import Popen,getstatusoutput
 from collections import OrderedDict
 import json
 from pMonitorC import PMonitorC
+import logging
 
 class JobModel:
 
@@ -30,11 +31,13 @@ class JobModel:
   @classmethod
   def fromDict(cls,d):
     inst = cls()
+    inst.jobid = d['jobid']
+    inst.cmd = d['cmd']
     inst.replaceWithDict(d)
     return inst
 
   def replaceWithDict(self,d):
-    fields = ['cmd','jobid','status','logpath','returncode','startAt']
+    fields = ['status','logpath','returncode','startAt']
     for field in fields:
       if field in d:
         setattr(self,field,d[field])
@@ -62,9 +65,6 @@ class JobModel:
 
   __repr__ = __str__
 
-  def run(self):
-    process = Popen('ls -l',shell=True)
-    print(process)
 
   def handlePayload(self,payload):
     """PMonitorC收到消息后，会调用此方法"""
@@ -72,7 +72,12 @@ class JobModel:
 
     action = payload['action']
     if action == 'start':
-      self.actionResult = payload['result']
+      logging.info(f'start返回{payload}')
+      pass
+    elif action == 'kill':
+      #只看status
+      logging.info(f'kill返回{paylod}')
+      pass
 
   def do_start(self):
     """返回后，model应该已经更新过了"""
@@ -85,7 +90,13 @@ class JobModel:
     return self.actionResult
 
   def do_kill(self):
-    pass
+    c = PMonitorC()
+    c.handlePayload = self.handlePayload
+    payload = self.dictRepr()
+    payload['action'] = 'kill'
+    c.sendPayload(payload)
+    c.handle_recv()
+    return self.actionResult
 
 
 if __name__ == '__main__':

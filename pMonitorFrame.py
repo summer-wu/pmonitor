@@ -7,6 +7,10 @@ from jobModel import JobModel
 from jobFrame import JobFrame
 from statusPoller import StatusPoller
 
+import logging
+logging.debug('started')
+logging.getLogger().setLevel(logging.INFO)
+
 class PMonitorFrame(tk.Frame):
 
   def __init__(self,master=None, cnf={}, **kw):

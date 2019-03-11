@@ -7,5 +7,4 @@ JobStatusRunning = "JobStatusRunning"
 JobStatusExited = "JobStatusExited"
 JobStatusNotExists = "JobStatusNotExists" #这个Job不存在
 
-JobStartResultSucc = "JobStartResultSucc"
-JobStartResultFail = "JobStartResultFail"
+
