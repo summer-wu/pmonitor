@@ -27,6 +27,7 @@ from collections import OrderedDict
 from constants import *
 from jobModel import JobModel
 import signal
+import traceback
 
 class ServerHandler:
   """处理server的recv"""
@@ -122,7 +123,7 @@ class UDS:
     while True:
       print("waiting for a connection")
       connection,client_address = sock.accept() #connection是一个新的socket
-      print("connection from {}".format(client_address))
+      print("connection from '{}'".format(client_address))
       ServerHandler(connection,self).handle_recv()
 
 
@@ -205,17 +206,23 @@ class Launcher:
   def killPobj(self,pobj):
     """父进程关闭，子进程可能仍然存活，这是不希望的！希望把整个进程组关闭，所以不能用pobj的terminate方法，应该killpg。"""
     pgid = os.getpgid(pobj.pid)
-    result = os.killpg(pgid, signal.SIGTERM)
-    if result == 0:
-      print(f"SIGTERM成功，returncode={returncode},cmd={pobj.args}")
-      return pobj.poll()
+    try:
+      os.killpg(pgid, signal.SIGTERM)
+      returncode = pobj.wait(0.1)
+      if returncode:
+        print(f"SIGTERM成功，returncode={returncode},cmd={pobj.args}", flush=True)
+        return returncode
+    except:
+      traceback.print_exc()
 
-    result = os.killpg(pgid, signal.SIGKILL)
-    if result == 0:
-      print(f"SIGTKILL成功，returncode={returncode},cmd={pobj.args}")
-      return pobj.poll()
-
-    return pobj.poll()
+    try:
+      os.killpg(pgid, signal.SIGKILL)
+      returncode = pobj.wait(0.1)
+      if returncode:
+        print(f"SIGKILL成功，returncode={returncode},cmd={pobj.args}", flush=True)
+        return returncode
+    except:
+      traceback.print_exc()
 
   def start_poll(self):
     """为了避免zombie"""

@@ -3,15 +3,23 @@
   "jobs":[
     {
       "jobid":"ssh ub0",
-      "cmd":"./cmds/sshForwarding.sh ub0"
+      "cmd":"./cmds/sshForwarding.sh ub0",
+      "autostart":true
     },
     {
       "jobid":"ssh hk0",
-      "cmd":"./cmds/sshForwarding.sh hk0"
+      "cmd":"./cmds/sshForwarding.sh hk0",
+      "autostart":true
     },
     {
       "jobid":"startSSLocal",
-      "cmd":"./cmds/startSSLocal.sh"
+      "cmd":"./cmds/startSSLocal.sh",
+      "autostart":true
+    },
+    {
+      "jobid":"polipo8123",
+      "cmd":"./cmds/startPolipo8123.sh",
+      "autostart":true
     },
     {
       "jobid":"pingSogou",
