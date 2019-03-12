@@ -4,13 +4,15 @@ from collections import OrderedDict
 import json
 from pMonitorC import PMonitorC
 import logging
+import os
 
 class JobModel:
 
   @classmethod
-  def jobid2modelFromJson(cls):
+  def jobid2modelFromJsonpath(cls, jsonpath='jobs.json'):
     """读取jobs.json，返回jobid2model字典"""
-    with open('jobs.json') as f:
+    assert os.path.exists(jsonpath), f"jsonpath={jsonpath} not exists!"
+    with open(jsonpath) as f:
       d = json.load(f)
     jobs_json = d['jobs']
     jobid2model = {}
@@ -22,6 +24,7 @@ class JobModel:
   def __init__(self):
     self.jobid = None #用于标记tab
     self.cmd = None
+    self.autostart = False
     self.status = None #状态，str
     self.startAt = None #启动时间，str
     self.logpath = None #日志文件，str
@@ -30,9 +33,11 @@ class JobModel:
 
   @classmethod
   def fromDict(cls,d):
+    """从json中读取时用到"""
     inst = cls()
     inst.jobid = d['jobid']
     inst.cmd = d['cmd']
+    if 'autostart' in d: inst.autostart = d['autostart']
     inst.replaceWithDict(d)
     return inst
 
@@ -76,7 +81,7 @@ class JobModel:
       pass
     elif action == 'kill':
       #只看status
-      logging.info(f'kill返回{paylod}')
+      logging.info(f'kill返回{payload}')
       pass
 
   def do_start(self):
@@ -100,7 +105,7 @@ class JobModel:
 
 
 if __name__ == '__main__':
-  jobs = JobModel.jobid2modelFromJson()
+  jobs = JobModel.jobid2modelFromJsonpath()
   print(jobs)
   # a=getstatusoutput('ls -l')
   # print(a)

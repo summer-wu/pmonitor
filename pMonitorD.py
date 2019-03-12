@@ -10,7 +10,9 @@ Daemon只负责启动进程、关闭进程。我需要一个GUI、一个进程�
 GUI连接到daemon，daemon负责start、stop process。
 只是文件名以D结尾，实际并没有类叫这个名。
 
-应该以nohup启动
+filename.py canRun #测试是否可以执行，返回0表示可以，其他表示不可以运行，因为已经在运行了
+nohup filename.py jsonpath #提供jsonpath并启动
+
 """
 import socket
 import sys
@@ -23,6 +25,8 @@ from subprocess import Popen,TimeoutExpired
 from datetime import datetime
 from collections import OrderedDict
 from constants import *
+from jobModel import JobModel
+import signal
 
 class ServerHandler:
   """处理server的recv"""
@@ -124,9 +128,19 @@ class UDS:
 
 
 class Launcher:
-  def __init__(self,logdir='logdir'):
+  def __init__(self,logdir='logdir',jsonpath=None):
     self.id2popen = OrderedDict()
     self.logdir = logdir
+    signal.signal(signal.SIGINT, self.sigHandler)
+    signal.signal(signal.SIGTERM, self.sigHandler)
+    if jsonpath:
+      self.startJobsWithJsonpath(jsonpath)
+
+  def startJobsWithJsonpath(self,jsonpath):
+    jobid2model = JobModel.jobid2modelFromJsonpath(jsonpath)
+    for jobid,model in jobid2model.items():
+      if model.autostart:
+        self.do_start(model.dictRepr())
 
   def logpathFromJobid(self,jobid):
     datepart = datetime.now().strftime("%Y%m%d_%H_%M_%S")
@@ -137,19 +151,22 @@ class Launcher:
   def do_start(self, payload):
     cmd = payload['cmd']
     jobid = payload['jobid']
+    print(f"will do_start jobid={jobid} cmd={cmd}")
     logpath = self.logpathFromJobid(jobid)
     assert cmd is not None and logpath is not None and jobid is not None
 
     f = open(logpath,'at')
-    pobj = Popen(cmd,shell=True,stdout=f,stderr=f,bufsize=0)
+    pobj = Popen(cmd,shell=True,stdout=f,stderr=f,bufsize=0,start_new_session=True)
     pobj.startAt = payload['startAt'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     pobj.logpath = payload['logpath'] = logpath
     payload['status'] = JobStatusRunning
     payload['pid'] = pobj.pid
+    print(f"started jobid={jobid} pid={pobj.pid}")
     self.id2popen[jobid] = pobj
     return payload
 
   def do_jobs(self, payload):
+    print(f"will do_jobs")
     jobs = []
     for jobid,pobj in self.id2popen.items():
       d = OrderedDict()
@@ -170,22 +187,13 @@ class Launcher:
   def do_kill(self, payload):
     """{"action":"kill","jobid":idxxx}  #返回{"action":"start","cmd":"ls -l","result":"success/fail"}"""
     jobid = payload['jobid']
+    print(f"will do_kill {jobid}")
     if jobid not in self.id2popen:
       payload['status'] = JobStatusNotExists
       return payload
 
     pobj = self.id2popen[jobid]
-
-    try:
-      pobj.terminate()
-      pobj.wait(0.1)
-    except TimeoutExpired:
-      pass
-    try:
-      pobj.kill()
-      pobj.wait(0.1)
-    except TimeoutExpired:
-      pass
+    self.killPobj(pobj)
     if pobj.returncode is None:
       payload['status'] = JobStatusRunning
     else:
@@ -194,11 +202,38 @@ class Launcher:
 
     return payload
 
+  def killPobj(self,pobj):
+    """父进程关闭，子进程可能仍然存活，这是不希望的！希望把整个进程组关闭，所以不能用pobj的terminate方法，应该killpg。"""
+    pgid = os.getpgid(pobj.pid)
+    result = os.killpg(pgid, signal.SIGTERM)
+    if result == 0:
+      print(f"SIGTERM成功，returncode={returncode},cmd={pobj.args}")
+      return pobj.poll()
+
+    result = os.killpg(pgid, signal.SIGKILL)
+    if result == 0:
+      print(f"SIGTKILL成功，returncode={returncode},cmd={pobj.args}")
+      return pobj.poll()
+
+    return pobj.poll()
+
   def start_poll(self):
     """为了避免zombie"""
-    time.sleep(0.1)
+    time.sleep(1)
     for jobid,pobj in self.id2popen.items():
       pobj.poll()
+
+  def sigHandler(self,signum, frame):
+    if signum == signal.SIGINT or signum == signal.SIGTERM:
+      print("收到信号{} will exit".format(signum))
+      self.killAll()
+      exit(0)
+    else:
+      print(f"不认识的信号{signum}")
+
+  def killAll(self):
+    for jobid,pobj in self.id2popen.items():
+      self.killPobj(pobj)
 
 def daemonisRunning():
   """通过连接socket，判断daemon是否在运行"""
@@ -210,11 +245,28 @@ def daemonisRunning():
   else:
     return False
 
+def testCanRunIfNeeded():
+  """方便shell测试"""
+  if len(sys.argv) == 2 and sys.argv[1] == 'canRun':
+    if daemonisRunning():
+      exit(-1)
+    else:
+      exit(0)
+
 if __name__ == '__main__':
+  testCanRunIfNeeded()
+
+  print(f"==={datetime.now()}===")
   if daemonisRunning():
     print('already running')
     exit(-1)
-  launcher = Launcher()
+
+  print(f"started pid={os.getpid()}")
+
+  jsonpath = None
+  if len(sys.argv)==2 and os.path.exists(sys.argv[1]):
+    jsonpath = sys.argv[1]
+  launcher = Launcher(jsonpath=jsonpath)
   a=UDS(launcher)
   a.start_server()
   a.start_accept_loop(inThread=True)

@@ -1,5 +1,5 @@
 """Process Monitor """
-
+import sys,os
 import tkinter as tk
 import tkinter.ttk as ttk
 from pMonitorC import PMonitorC
@@ -11,13 +11,21 @@ import logging
 logging.debug('started')
 logging.getLogger().setLevel(logging.INFO)
 
+
+def chDir():
+  """进入文件所在目录"""
+  mo = sys.modules[__name__]
+  dir = os.path.dirname(mo.__file__)
+  os.chdir(dir)
+
 class PMonitorFrame(tk.Frame):
+
 
   def __init__(self,master=None, cnf={}, **kw):
     tk.Frame.__init__(self,master,cnf,**kw)
     self.nb:ttk.Notebook = None
     self.addNotebook()
-    self.jobid2model = JobModel.jobid2modelFromJson()
+    self.jobid2model = JobModel.jobid2modelFromJsonpath('jobs.json')
     for jobid,model in self.jobid2model.items():
       f = JobFrame(master=None,model=model)
       tab_text = jobid
@@ -38,6 +46,7 @@ class PMonitorFrame(tk.Frame):
     self.statusPoller.flagShouldStop()
 
 if __name__ == '__main__':
+  chDir()
   if not PMonitorC.daemonisRunning():
     print("pMonitorD is not running")
     exit(0)
