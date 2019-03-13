@@ -162,6 +162,7 @@ class Launcher:
     pobj.logpath = payload['logpath'] = logpath
     payload['status'] = JobStatusRunning
     payload['pid'] = pobj.pid
+    payload['returncode'] = None
     print(f"started jobid={jobid} pid={pobj.pid}")
     self.id2popen[jobid] = pobj
     return payload
