@@ -1,3 +1,4 @@
+#!/usr/bin/env python3.7
 """Process Monitor """
 import sys,os
 import tkinter as tk
@@ -15,7 +16,8 @@ logging.getLogger().setLevel(logging.INFO)
 def chDir():
   """进入文件所在目录"""
   mo = sys.modules[__name__]
-  dir = os.path.dirname(mo.__file__)
+  realpath = os.path.realpath(mo.__file__)
+  dir = os.path.dirname(realpath)
   os.chdir(dir)
 
 class PMonitorFrame(tk.Frame):
