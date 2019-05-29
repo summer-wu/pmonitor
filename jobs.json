@@ -2,13 +2,8 @@
   "comment":"这个文件用于控制GUI的布局",
   "jobs":[
     {
-      "jobid":"ssh ub0",
-      "cmd":"./cmds/sshForwarding.sh ub0",
-      "autostart":true
-    },
-    {
-      "jobid":"ssh hk0",
-      "cmd":"./cmds/sshForwarding.sh hk0",
+      "jobid":"sshForwarding",
+      "cmd":"./cmds/sshForwarding.sh",
       "autostart":true
     },
     {
