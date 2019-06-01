@@ -10,7 +10,7 @@ from statusPoller import StatusPoller
 
 import logging
 logging.debug('started')
-logging.getLogger().setLevel(logging.INFO)
+logging.getLogger().setLevel(logging.DEBUG) #在这里修改日志等级，改为INFO信息会少很多
 
 
 def chDir():

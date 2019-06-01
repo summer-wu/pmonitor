@@ -13,6 +13,7 @@ GUI连接到daemon，daemon负责start、stop process。
 filename.py canRun #测试是否可以执行，返回0表示可以，其他表示不可以运行，因为已经在运行了
 nohup filename.py jsonpath #提供jsonpath并启动
 
+收到信号后会关闭全部jobs
 """
 import socket
 import sys
@@ -173,6 +174,7 @@ class Launcher:
     for jobid,pobj in self.id2popen.items():
       d = OrderedDict()
       d['jobid'] = jobid
+      d['pid'] = pobj.pid
       d['cmd'] = pobj.args
       d['startAt'] = pobj.startAt
       d['logpath'] = pobj.logpath
@@ -232,6 +234,7 @@ class Launcher:
       pobj.poll()
 
   def sigHandler(self,signum, frame):
+    """收到信号后会关闭全部jobs"""
     if signum == signal.SIGINT or signum == signal.SIGTERM:
       print("收到信号{} will exit".format(signum))
       self.killAll()

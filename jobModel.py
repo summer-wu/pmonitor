@@ -24,6 +24,7 @@ class JobModel:
   def __init__(self):
     self.jobid = None #用于标记tab
     self.cmd = None
+    self.pid = None
     self.autostart = False
     self.status = None #状态，str
     self.startAt = None #启动时间，str
@@ -37,12 +38,14 @@ class JobModel:
     inst = cls()
     inst.jobid = d['jobid']
     inst.cmd = d['cmd']
+    if 'pid' in d:
+      inst.pid = d['pid']
     if 'autostart' in d: inst.autostart = d['autostart']
     inst.replaceWithDict(d)
     return inst
 
   def replaceWithDict(self,d):
-    fields = ['status','logpath','returncode','startAt']
+    fields = ['status','logpath','returncode','startAt','pid']
     for field in fields:
       if field in d:
         setattr(self,field,d[field])
@@ -51,6 +54,7 @@ class JobModel:
     d = OrderedDict()
     d['jobid'] = self.jobid
     d['cmd'] = self.cmd
+    d['pid'] = self.pid
     d['status'] = self.status
     d['startAt'] = self.startAt
     d['logpath'] = self.logpath

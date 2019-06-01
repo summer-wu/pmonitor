@@ -43,16 +43,16 @@ class JobFrame(tk.Frame):
     self.statusLabel.pack(side=tk.LEFT,padx=10)
     self.actionBtn.pack(side=tk.LEFT,padx=10)
 
-    self.monitorLogVar = tk.IntVar(value=0)
-    self.monitorLogCB = ttk.Checkbutton(master,text='monitor log',
-                                        variable=self.monitorLogVar,command=self.monitorLogChanged)
+    self.monitorLogCBVar = tk.IntVar(value=0) #CBVar是否已经勾选了CheckButton
+    self.monitorLogCB = ttk.Checkbutton(master, text='monitor log',
+                                        variable=self.monitorLogCBVar, command=self.monitorLogCBChanged)
     self.monitorLogCB.pack(side=tk.LEFT)
 
-  def monitorLogChanged(self):
-    monitorLogValue = self.monitorLogVar.get()
-    if monitorLogValue:
+  def monitorLogCBChanged(self):
+    monitorLogCBValue = self.monitorLogCBVar.get()
+    if monitorLogCBValue:
       self.refreshLog()
-      self.after(ms=1000,func=self.monitorLogChanged)
+      self.after(ms=1000, func=self.monitorLogCBChanged) #每1秒刷新一次，用于查看最新状态。如果要查看历史记录，需要打开文件
     else:
       pass
 

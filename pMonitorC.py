@@ -76,7 +76,7 @@ class PMonitorC:
           self.shouldBreak = True #只需要parseData一次
     finally:
       s.close()
-      logging.debug("connection closed",s)
+      logging.debug("connection closed %s",s)
 
   @staticmethod
   def takeDataWithByteCount(data,bytecount):
