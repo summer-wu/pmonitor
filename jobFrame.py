@@ -1,4 +1,4 @@
-"""runner是一个tab，它显示
+"""JobFrame是一个tab，它显示
 status:{} start/stop
 cmd
  """
