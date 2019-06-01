@@ -20,6 +20,13 @@ class PMonitorC:
     self.shouldBreak = False
     self.connect_to_uds(inThread=False)
 
+  def __setattr__(self, key, value):
+    if key == 'data' and hasattr(self,'data'):
+      print('before data:',self.data)
+      print('after data:',value)
+    super(PMonitorC, self).__setattr__(key,value)
+
+
   @staticmethod
   def daemonisRunning():
     """通过连接socket，判断daemon是否在运行"""
@@ -53,12 +60,6 @@ class PMonitorC:
       logging.debug("connect_ex fail,errno={},errmsg={}".format(errno, errmsg))
       return errno,errmsg
 
-  @staticmethod
-  def takeDataWithByteCount(data,bytecount):
-    taken = data[:bytecount]
-    remaining = data[bytecount:]
-    return taken,remaining
-
   def handle_recv(self):
     s = self.s
     try:
@@ -70,20 +71,32 @@ class PMonitorC:
           return
         # print("received:", data)
         self.data.extend(data)
-        self.parseData()
-        self.shouldBreak = True #只需要parseData一次
+        if self.canParse(self.data):
+          self.parseData()
+          self.shouldBreak = True #只需要parseData一次
     finally:
       s.close()
       logging.debug("connection closed",s)
 
+  @staticmethod
+  def takeDataWithByteCount(data,bytecount):
+    taken = data[:bytecount]
+    remaining = data[bytecount:]
+    return taken,remaining
+
+  @classmethod
+  def canParse(cls,data):
+    """data是否足够长"""
+    length, remaining = cls.takeDataWithByteCount(data, 4)
+    length = int.from_bytes(length, byteorder='big')
+    return len(remaining)>=length # remaining满足 需要的length
 
   def parseData(self):
     while len(self.data)>=5:
       length,remaining = self.takeDataWithByteCount(self.data,4)
       length = int.from_bytes(length,byteorder='big')
-      if length<len(remaining):
-        #不够长度，返回
-        return
+      assert len(remaining)>=length
+
       jsonBytes,remaining = self.takeDataWithByteCount(remaining,length)
       payload = json.loads(jsonBytes)
       # print("解析到payload:",payload)

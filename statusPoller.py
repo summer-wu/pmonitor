@@ -17,6 +17,7 @@ class StatusPoller:
     self.shouldStop = False
 
   def flagShouldStop(self):
+    """由pMonitorFrame调用，用于停止poll_jobs中的while循环"""
     self.shouldStop = True
 
   def poll_jobs(self,inThread=True):
@@ -40,7 +41,11 @@ class StatusPoller:
     model:JobModel
     for jobDict in jobs:
       jobid = jobDict['jobid']
-      model = self.jobid2model[jobid]
+      if jobid in self.jobid2model:
+        model = self.jobid2model[jobid]
+      else:
+        print(f'{jobid}已经从配置中删除了')
+        continue
       oldstatus = model.status
       model.replaceWithDict(jobDict)
       newstatus = model.status
