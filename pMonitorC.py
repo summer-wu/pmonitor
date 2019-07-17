@@ -122,7 +122,7 @@ if __name__ == '__main__':
   errNo,errMsg = c.connect_to_uds()
   print(errNo,errMsg)
   # payload = dict(action="tree")
-  payload = dict(action="start",jobid="ping",cmd="ping g.cn",logpath="logdir/ls.txt")
+  payload = dict(action="start",jobid="ls",cmd="ls -la",logpath="logdir/ls.txt")
   # payload = dict(action="kill", jobid="ping")
   c.sendPayload(payload)
   c.handle_recv()

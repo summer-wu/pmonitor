@@ -11,7 +11,7 @@
 + pMonitorC.py 用于连接uds（unix domain socket）
 + jobFrame.py 它是一个tab
 + jobs.json 定义要执行的命令
-
++ pMonitorWebServer.py 前端，用于管理进程。尚未完成
 
 # 技术细节
 + pg：process group
